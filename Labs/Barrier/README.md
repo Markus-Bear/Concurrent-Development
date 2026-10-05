@@ -1,4 +1,4 @@
-# Lab 3 - Simple Barrier
+# Barrier
 
 Two barrier solutions for 10 goroutines. Each goroutine prints Part A,
 waits until all of them have finished Part A, then prints Part B.
