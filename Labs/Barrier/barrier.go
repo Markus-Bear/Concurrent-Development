@@ -34,16 +34,21 @@ import (
 )
 
 // Place a barrier in this function --use Mutex's and Semaphores
+// doStuff does Part A, waits at the barrier until all routines have done Part A,
+// then does Part B. The last routine to arrive opens the semaphore and each
+// routine that gets through lets the next one through
 func doStuff(goNum int, arrived *int, max int, wg *sync.WaitGroup, theLock *sync.Mutex, sem *semaphore.Weighted, ctx context.Context) bool {
 	time.Sleep(time.Second)
 	fmt.Println("Part A", goNum)
 	//we wait here until everyone has completed part A
+	//BARRIER: count arrivals under the mutex, the last routine to arrive opens the semaphore
 	theLock.Lock()
 	*arrived++
 	if *arrived == max { //last to arrive opens the lock
 		sem.Release(1)
 	}
 	theLock.Unlock()
+	//BARRIER: turnstile, everyone blocks here until it opens, then each routine lets the next through
 	sem.Acquire(ctx, 1) //lock: wait here until it is opened
 	sem.Release(1)      //then let the next goroutine through
 	fmt.Println("PartB", goNum)
@@ -51,6 +56,8 @@ func doStuff(goNum int, arrived *int, max int, wg *sync.WaitGroup, theLock *sync
 	return true
 }
 
+// main takes every permit so the semaphore starts locked, starts the routines
+// and waits for them all to finish
 func main() {
 	totalRoutines := 10
 	arrived := 0
@@ -59,6 +66,7 @@ func main() {
 	//we will need some of these
 	ctx := context.TODO()
 	var theLock sync.Mutex
+	//BARRIER: the semaphore is the turnstile, so it has to start locked
 	sem := semaphore.NewWeighted(int64(totalRoutines))
 	sem.Acquire(ctx, int64(totalRoutines)) //take every permit so the lock starts locked (value 0)
 	for i := range totalRoutines {         //create the go Routines here

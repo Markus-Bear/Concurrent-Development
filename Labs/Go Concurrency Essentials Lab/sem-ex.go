@@ -49,11 +49,13 @@ func main() {
 	for i := range out {
 		// When maxWorkers goroutines are in flight, Acquire blocks until one of the
 		// workers finishes.
+		//SEMAPHORE: each permit is one running worker, so at most maxWorkers run at once
 		if err := sem.Acquire(ctx, 1); err != nil {
 			log.Printf("Failed to acquire semaphore: %v", err)
 			break
 		}
 
+		// each worker computes one result, then gives its permit back
 		go func(i int) {
 			defer sem.Release(1)
 			out[i] = collatzSteps(i + 1)
@@ -64,6 +66,7 @@ func main() {
 	//
 	// If you are already waiting for the workers by some other means (such as an
 	// errgroup.Group), you can omit this final Acquire call.
+	//SEMAPHORE: all the permits are only free once every worker has finished
 	if err := sem.Acquire(ctx, int64(maxWorkers)); err != nil {
 		log.Printf("Failed to acquire semaphore: %v", err)
 	}

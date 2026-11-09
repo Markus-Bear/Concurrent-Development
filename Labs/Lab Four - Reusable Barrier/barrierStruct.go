@@ -50,17 +50,20 @@ func createBarrier(N int) barrier {
 // Method belonging to barrier data type
 // Blocks until everyone reaches this point then lets everyone continue
 func (b *barrier) wait() {
+	//BARRIER: count arrivals under the mutex
 	b.theLock.Lock()
 	b.count++
 	if b.count == b.total {
 		b.theLock.Unlock()
 		fmt.Println("here")
+		//BARRIER: the last routine to arrive receives once from each waiting routine, releasing them
 		for _ = range b.total - 1 {
 			<-b.theChan
 		}
 	} else {
 		fmt.Println(b.count)
 		b.theLock.Unlock()
+		//BARRIER: every other routine blocks here until the last one arrives and receives
 		b.theChan <- true
 	}
 } //wait
@@ -73,6 +76,7 @@ func WorkWithRendezvous(wg *sync.WaitGroup, Num int, theBarrier *barrier) bool {
 	time.Sleep(X * time.Second) //wait random time amount
 	fmt.Println("Part A", Num)
 	//Rendezvous here
+	//BARRIER: every routine stops here until all have done Part A
 	theBarrier.wait()
 	fmt.Println("PartB", Num)
 	wg.Done()

@@ -43,6 +43,7 @@ func doStuff(goNum int, arrived *atomic.Int32, max int32, wg *sync.WaitGroup, fi
 		time.Sleep(time.Second)
 		fmt.Println("Part A", goNum)
 		//wait here until everyone has completed part A
+		//BARRIER PHASE 1: the last routine to arrive opens the first gate for the others
 		if arrived.Add(1) == max { //Add returns the new value, so only one routine sees max
 			for range max - 1 { //last to arrive lets the others through
 				firstGate <- true
@@ -53,6 +54,7 @@ func doStuff(goNum int, arrived *atomic.Int32, max int32, wg *sync.WaitGroup, fi
 		fmt.Println("PartB", goNum)
 		//wait here until everyone has finished part B
 		//stops a fast routine looping round and using up a part A signal
+		//BARRIER PHASE 2: the last routine to finish opens the second gate, this is what makes it reusable
 		if arrived.Add(-1) == 0 { //last to leave lets the others through
 			for range max - 1 {
 				secondGate <- true

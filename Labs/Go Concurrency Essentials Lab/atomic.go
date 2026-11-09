@@ -30,14 +30,18 @@ import (
 // Global variables shared between functions --A BAD IDEA
 //var wg sync.WaitGroup
 
+// addsAtomic adds 1 to the shared total n times using an atomic add
 func addsAtomic(n int, total *atomic.Int64, wg *sync.WaitGroup) bool {
 	for i := 0; i < n; i++ {
+		//ATOMIC: the update happens as one step, so routines can't lose each other's updates
 		total.Add(1) //atomic add so no lock needed.
 	}
 	wg.Done() //let waitgroup know we have finished
 	return true
 }
 
+// main starts 10 routines that update the total, waits for them all,
+// then prints the total
 func main() {
 	var wg sync.WaitGroup //local and passed by reference. No longer global.
 	var total atomic.Int64

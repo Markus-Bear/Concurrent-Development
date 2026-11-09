@@ -30,8 +30,10 @@ import (
 //var wg sync.WaitGroup
 //var total int64
 
+// adds adds 1 to the shared total n times, holding the lock for each update
 func adds(n int, total *int64, theLock *sync.Mutex, wg *sync.WaitGroup) bool {
 	for i := 0; i < n; i++ {
+		//MUTEX: lock and unlock around the update so only one routine is in the critical section
 		theLock.Lock()
 		*total++ //only one routine can be here at a time
 		theLock.Unlock()
@@ -40,6 +42,8 @@ func adds(n int, total *int64, theLock *sync.Mutex, wg *sync.WaitGroup) bool {
 	return true
 }
 
+// main starts 10 routines that update the total, waits for them all,
+// then prints the total
 func main() {
 
 	//theLock will be passed by reference between go routines

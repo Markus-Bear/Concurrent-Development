@@ -33,17 +33,22 @@ type Semaphore struct {
 	theCounter chan struct{}
 }
 
+// InitSemaphore creates a semaphore that at most n routines can hold at once
 func InitSemaphore(n int) *Semaphore {
 	return &Semaphore{make(chan struct{}, n)} //buffer size n = max routines allowed in at once
 }
+
+// Acquire takes a slot, blocking if all of them are taken
 func Acquire(sem *Semaphore) {
 	sem.theCounter <- struct{}{} //take a slot, blocks when all n are taken
 }
 
+// Release frees a slot so a waiting routine can continue
 func Release(sem *Semaphore) {
 	<-sem.theCounter //free a slot so a waiting routine can continue
 }
 
+// main starts 20 tasks but the semaphore only lets 5 run at once
 func main() {
 	//maxGoroutines := 5
 	//semaphore := make(chan struct{}, maxGoroutines)
@@ -52,10 +57,12 @@ func main() {
 	var wg sync.WaitGroup
 	for i := 0; i < 20; i++ {
 		wg.Add(1)
+		// each task waits for a free slot, runs, then gives the slot back
 		go func(i int) {
 			defer wg.Done()
 			//semaphore <- struct{}{}
 			//defer func() { <-semaphore }()
+			//SEMAPHORE: only 5 routines can get past Acquire at once, the rest block here until a slot is released
 			Acquire(semaphore)
 			defer Release(semaphore)
 

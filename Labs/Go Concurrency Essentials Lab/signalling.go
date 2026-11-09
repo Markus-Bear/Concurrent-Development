@@ -29,23 +29,29 @@ import (
 
 //Global variables shared between functions --A BAD IDEA
 
+// main starts two routines that wait for each other at an unbuffered channel,
+// so both finish Part A before either starts Part B
 func main() {
 	var wg sync.WaitGroup
 	barrier := make(chan bool)
 
+	// doStuffOne does Part A, signals StuffTwo, then does Part B
 	doStuffOne := func() bool {
 		fmt.Println("StuffOne - Part A")
 		//wait here
+		//SIGNALLING: unbuffered send, blocks until StuffTwo is ready to receive
 		barrier <- true
 		fmt.Println("StuffOne - PartB")
 		wg.Done()
 		return true
 	}
+	// doStuffTwo does Part A, waits for StuffOne's signal, then does Part B
 	doStuffTwo := func() bool {
 		time.Sleep(time.Second * 5)
 		fmt.Println("StuffTwo - Part A")
 		//wait here
 
+		//SIGNALLING: unbuffered receive, blocks until StuffOne has sent
 		<-barrier
 		fmt.Println("StuffTwo - PartB")
 		wg.Done()

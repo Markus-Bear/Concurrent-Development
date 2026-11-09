@@ -31,12 +31,15 @@ import (
 
 //Global variables shared between functions --A BAD IDEA
 
+// WorkWithRendezvous does Part A, tells main it has arrived, waits to be
+// released, then does Part B
 func WorkWithRendezvous(wg *sync.WaitGroup, Num int, barrier chan bool, release chan bool) bool {
 	var X time.Duration
 	X = time.Duration(rand.IntN(5))
 	time.Sleep(X * time.Second) //wait random time amount
 	fmt.Println("Part A", Num)
 	//Rendezvous here
+	//RENDEZVOUS: each routine reports its arrival to main, then waits to be released
 	barrier <- true //signal main that this goroutine has arrived
 	<-release       //block until main releases everyone
 	fmt.Println("PartB", Num)
@@ -44,6 +47,8 @@ func WorkWithRendezvous(wg *sync.WaitGroup, Num int, barrier chan bool, release 
 	return true
 }
 
+// main acts as the coordinator: it waits for every routine to arrive,
+// then releases them all
 func main() {
 	var wg sync.WaitGroup
 	barrier := make(chan bool) //unbuffered: goroutines report arrival here
@@ -53,6 +58,7 @@ func main() {
 	for N := range threadCount {
 		go WorkWithRendezvous(&wg, N, barrier, release)
 	}
+	//RENDEZVOUS: main is the meeting point, nobody is released until everyone has arrived
 	//wait until all goroutines have arrived
 	for range threadCount {
 		<-barrier
