@@ -22,16 +22,17 @@ Concurrent-Development/
    cd Concurrent-Development/Labs
    ```
 
-3. Change into a lab folder and run it:
+3. Change into a lab folder and run a program by its file name. Some lab folders hold several separate programs, each with its own `main`, so `go run .` won't work. Each lab's README lists its programs:
 
    ```bash
-   go run .
+   cd "Lab Six - Producer Consumer"
+   go run producerConsumer.go
    ```
 
-4. To check a lab for data races, run it with Go's race detector:
+4. To check a program for data races, run it with Go's race detector:
 
    ```bash
-   go run -race .
+   go run -race producerConsumer.go
    ```
 
 ## Author
